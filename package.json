@@ -10,11 +10,17 @@
     "test": "jest"
   },
   "dependencies": {
+    "@react-native-async-storage/async-storage": "^2.0.0",
     "@react-native-voice/voice": "^3.2.4",
     "lottie-react-native": "^7.0.0",
     "react": "18.2.0",
     "react-native": "0.74.0",
-    "react-native-vector-icons": "^10.2.0"
+    "react-native-animatable": "^1.4.0",
+    "react-native-blob-util": "^0.19.11",
+    "react-native-responsive-screen": "^1.4.2",
+    "react-native-toast-message": "^2.2.1",
+    "react-native-vector-icons": "^10.2.0",
+    "zustand": "^5.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
