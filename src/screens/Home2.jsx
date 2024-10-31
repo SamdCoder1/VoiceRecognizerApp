@@ -4,7 +4,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import Voice from '@react-native-voice/voice';
 import LottieView from 'lottie-react-native';
 
-const App = () => {
+const Home2 = () => {
   const [result, setResult] = useState('');
   const [partialResult, setPartialResult] = useState('');
   const [isListening, setIsListening] = useState(false);
@@ -64,7 +64,7 @@ const App = () => {
 
       {isListening ? (
         <LottieView
-          source={require('./src/assets/lottieFiles/Animation - 1730226998310.json')}
+          source={require('../assets/lottieFiles/Animation - 1730226998310.json')}
           style={{height: 150, width: 150}}
           autoPlay
           loop
@@ -111,10 +111,12 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 10,
+    color: 'black',
   },
   subtitle: {
     fontSize: 16,
     marginBottom: 20,
+    color: 'black',
   },
   micButton: {
     marginBottom: 20,
@@ -133,12 +135,14 @@ const styles = StyleSheet.create({
     marginTop: 2,
     textAlign: 'center',
     // borderBottomWidth: 2,
+    color: 'black',
   },
   result: {
     fontSize: 20,
     // fontWeight: 'bold',
     marginTop: 2,
     textAlign: 'center',
+    color: 'black',
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -148,4 +152,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default App;
+export default Home2;
