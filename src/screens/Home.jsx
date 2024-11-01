@@ -102,6 +102,9 @@ const Home = () => {
 
   return (
     <ScrollView style={{flexGrow: 1, padding: 20}}>
+      <Animatable.Text animation="fadeIn" style={styles.listeningText1}>
+          LIST OF ITEMS
+        </Animatable.Text>
       <View style={styles.listContainer}>
         <ScrollView showsVerticalScrollIndicator={false}>
           {updatedDataArray.map((item, index) => (
@@ -143,16 +146,18 @@ const Home = () => {
       </View>
 
       <View style={styles.listeningContainer}>
-        {/* {isListening && (
-          <Animatable.Text animation="fadeIn" style={styles.listeningText}>
-            Listening...
-          </Animatable.Text>
-        )}
-   */}
+
+          <TouchableOpacity
+        onPress={() => {
+          console.log(updatedDataArray);
+        }}>
         <Animatable.Text animation="fadeIn" style={styles.listeningText}>
           Recorded Text
         </Animatable.Text>
+      </TouchableOpacity>
+        
 
+        {/* <Animatable.View animation="slideInDown"> */}
         <TextInput
           style={styles.textInput}
           value={result}
@@ -160,6 +165,7 @@ const Home = () => {
           placeholder="Speech to Text Result"
           multiline
         />
+        {/* </Animatable.View> */}
       </View>
 
       {/* <TouchableOpacity
@@ -191,6 +197,13 @@ const styles = StyleSheet.create({
   listeningContainer: {
     marginTop: hp(1.5),
   },
+  listeningText1: {
+    fontSize: wp(6),
+    textAlign: 'center',
+    fontWeight: 'bold',
+    color: 'gray',
+    marginBottom:hp(1)
+  },
   listeningText: {
     fontSize: wp(6),
     textAlign: 'center',
@@ -199,7 +212,7 @@ const styles = StyleSheet.create({
   },
   textInput: {
     marginTop: hp(1),
-    height: hp(24),
+    height: hp(22),
     borderColor: 'black',
     borderWidth: wp(0.5),
     paddingHorizontal: 10,
