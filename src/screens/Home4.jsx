@@ -6,6 +6,7 @@ import {
   ScrollView,
   StyleSheet,
   TextInput,
+  Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Voice from '@react-native-voice/voice';
@@ -23,105 +24,71 @@ const data = [
     originalTranscript: '',
     processedTranscript: '',
     recording: '',
-  },
+    status: 'idle',
+  }, // status can be: 'idle', 'recording', 'processing', 'completed'
   {
     name: '1811 BOP',
     originalTranscript: '',
     processedTranscript: '',
     recording: '',
+    status: 'idle',
   },
   {
     name: '1792 FBOP',
     originalTranscript: '',
     processedTranscript: '',
     recording: '',
+    status: 'idle',
   },
   {
     name: '1810 FBOP',
     originalTranscript: '',
     processedTranscript: '',
     recording: '',
+    status: 'idle',
   },
-  {
-    name: '1407 BOP1',
-    originalTranscript: '',
-    processedTranscript: '',
-    recording: '',
-  },
-  {
-    name: '1313 BOP1',
-    originalTranscript: '',
-    processedTranscript: '',
-    recording: '',
-  },
-  {
-    name: '1808 FBOP1',
-    originalTranscript: '',
-    processedTranscript: '',
-    recording: '',
-  },
-  {
-    name: '1806 FBOP1',
-    originalTranscript: '',
-    processedTranscript: '',
-    recording: '',
-  },
-  {
-    name: '1794 GBOP1',
-    originalTranscript: '',
-    processedTranscript: '',
-    recording: '',
-  },
-  {
-    name: '1813 GBOP1',
-    originalTranscript: '',
-    processedTranscript: '',
-    recording: '',
-  },
-  {
-    name: '1786 FOF1',
-    originalTranscript: '',
-    processedTranscript: '',
-    recording: '',
-  },
-  {
-    name: '1801 FOF1',
-    originalTranscript: '',
-    processedTranscript: '',
-    recording: '',
-  },
+  // ... other items
 ];
 
 const audioRecorderPlayer = new AudioRecorderPlayer();
 
-const Home = () => {
+const Home4 = () => {
   const [selectedItem, setSelectedItem] = useState(null);
   const [updatedDataArray, setUpdatedDataArray] = useState(data);
   const [result, setResult] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
-  const [isProcessedTranscript, setIsProcessedTranscript] = useState(false);
 
   useEffect(() => {
-    Voice.onSpeechStart = () => setIsListening(true);
-    Voice.onSpeechEnd = () => setIsListening(false);
-    Voice.onSpeechResults = e => setResult(e.value[0]);
+    Voice.onSpeechResults = e => {
+      const transcription = e.value[0];
+      setResult(transcription);
+
+      if (selectedItem) {
+        updateItemTranscript(selectedItem, transcription);
+      }
+    };
 
     return () => {
       Voice.destroy().then(Voice.removeAllListeners);
-      if (isRecording) {
-        stopRecording();
-      }
+      stopRecording();
     };
-  }, []);
+  }, [selectedItem]);
 
-  const startListening = async () => {
-    try {
-      await Voice.start('en-US');
-      setResult('');
-    } catch (e) {
-      console.error('Start listening error:', e);
-    }
+  const updateItemTranscript = (item, transcription) => {
+    const updatedArray = updatedDataArray.map(dataItem =>
+      dataItem.name === item.name
+        ? {...dataItem, processedTranscript: transcription, status: 'completed'}
+        : dataItem,
+    );
+    setUpdatedDataArray(updatedArray);
+  };
+
+  const updateItemStatus = (item, status) => {
+    const updatedArray = updatedDataArray.map(dataItem =>
+      dataItem.name === item.name ? {...dataItem, status: status} : dataItem,
+    );
+    setUpdatedDataArray(updatedArray);
   };
 
   const startRecording = async item => {
@@ -129,6 +96,7 @@ const Home = () => {
       const path = `${RNFetchBlob.fs.dirs.DocumentDir}/${item.name}.aac`;
       await audioRecorderPlayer.startRecorder(path);
       setIsRecording(true);
+      updateItemStatus(item, 'recording');
 
       const updatedArray = updatedDataArray.map(dataItem =>
         dataItem.name === item.name ? {...dataItem, recording: path} : dataItem,
@@ -136,6 +104,7 @@ const Home = () => {
       setUpdatedDataArray(updatedArray);
     } catch (error) {
       console.error('Recording error:', error);
+      Alert.alert('Error', 'Failed to start recording');
     }
   };
 
@@ -144,64 +113,74 @@ const Home = () => {
       if (isRecording) {
         await audioRecorderPlayer.stopRecorder();
         setIsRecording(false);
+        if (selectedItem) {
+          updateItemStatus(selectedItem, 'processing');
+          // Start speech recognition after recording stops
+          await startSpeechRecognition();
+        }
       }
     } catch (error) {
       console.error('Stop recording error:', error);
+      Alert.alert('Error', 'Failed to stop recording');
+    }
+  };
+
+  const startSpeechRecognition = async () => {
+    try {
+      await Voice.start('en-US');
+      setIsListening(true);
+    } catch (error) {
+      console.error('Speech recognition error:', error);
+      Alert.alert('Error', 'Failed to start speech recognition');
     }
   };
 
   const handleSelect = async item => {
     try {
-      if (selectedItem && result) {
-        const updatedArray = updatedDataArray.map(dataItem =>
-          dataItem.name === selectedItem.name
-            ? {...dataItem, processedTranscript: result}
-            : dataItem,
-        );
-        setUpdatedDataArray(updatedArray);
-      }
-
-      if (isRecording) {
+      // If there's already a selected item being recorded or processed
+      if (selectedItem && (isRecording || isListening)) {
         await stopRecording();
-      }
-      if (isListening) {
         await Voice.stop();
       }
 
+      // If the item already has a transcript, just display it
       if (item.processedTranscript) {
-        setIsProcessedTranscript(true);
         setResult(item.processedTranscript);
-      } else {
-        setIsProcessedTranscript(false);
-        setResult('');
-        await startListening();
-        await startRecording(item);
+        setSelectedItem(item);
+        return;
       }
 
+      // Start new recording for the selected item
       setSelectedItem(item);
+      setResult('');
+      await startRecording(item);
     } catch (error) {
       console.error('Handle select error:', error);
+      Alert.alert('Error', 'Failed to process selection');
     }
   };
 
-  const onRetry = async item => {
+  const handleRetry = async item => {
     try {
-      if (isRecording) {
-        await stopRecording();
-      }
-      if (isListening) {
-        await Voice.stop();
-      }
-
+      // Reset the item's data
       const updatedArray = updatedDataArray.map(dataItem =>
         dataItem.name === item.name
-          ? {...dataItem, processedTranscript: '', recording: ''}
+          ? {
+              ...dataItem,
+              processedTranscript: '',
+              recording: '',
+              status: 'idle',
+            }
           : dataItem,
       );
       setUpdatedDataArray(updatedArray);
-      handleSelect(item);
+      setResult('');
+
+      // Start new recording
+      await handleSelect(item);
     } catch (error) {
       console.error('Retry error:', error);
+      Alert.alert('Error', 'Failed to retry');
     }
   };
 
@@ -210,6 +189,7 @@ const Home = () => {
       <Animatable.Text animation="fadeIn" style={styles.listeningText1}>
         LIST OF ITEMS
       </Animatable.Text>
+
       <View style={styles.listContainer}>
         <ScrollView showsVerticalScrollIndicator={false}>
           {updatedDataArray.map((item, index) => (
@@ -228,23 +208,19 @@ const Home = () => {
                 <Text style={{color: 'black', fontSize: wp(4)}}>
                   {item.name}
                 </Text>
-                {selectedItem?.name === item.name &&
-                (isListening || isRecording) ? (
-                  <Icon name="mic" size={wp(5)} color="red" />
-                ) : (
-                  <View style={{flexDirection: 'row', gap: wp(2)}}>
-                    <Icon name="mic-off" size={wp(5)} color="black" />
-                    {selectedItem?.name === item.name &&
-                      isProcessedTranscript && (
-                        <TouchableOpacity
-                          onPress={() => {
-                            onRetry(item);
-                          }}>
-                          <Icon name="reload" size={wp(5)} color="red" />
-                        </TouchableOpacity>
-                      )}
-                  </View>
-                )}
+                <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                  {item.status === 'recording' && (
+                    <Icon name="mic" size={wp(5)} color="red" />
+                  )}
+                  {item.status === 'processing' && (
+                    <Text style={{color: 'blue'}}>Processing...</Text>
+                  )}
+                  {item.status === 'completed' && (
+                    <TouchableOpacity onPress={() => handleRetry(item)}>
+                      <Icon name="reload" size={wp(5)} color="red" />
+                    </TouchableOpacity>
+                  )}
+                </View>
               </View>
             </TouchableOpacity>
           ))}
@@ -252,14 +228,11 @@ const Home = () => {
       </View>
 
       <View style={styles.listeningContainer}>
-        <TouchableOpacity
-          onPress={() => {
-            console.log(updatedDataArray);
-          }}>
-          <Animatable.Text animation="fadeIn" style={styles.listeningText}>
-            Recorded Text
-          </Animatable.Text>
-        </TouchableOpacity>
+        {isRecording && selectedItem && (
+          <TouchableOpacity style={styles.stopButton} onPress={stopRecording}>
+            <Text style={styles.stopButtonText}>Stop Recording</Text>
+          </TouchableOpacity>
+        )}
 
         <TextInput
           style={styles.textInput}
@@ -267,15 +240,16 @@ const Home = () => {
           onChangeText={text => setResult(text)}
           placeholder="Speech to Text Result"
           multiline
+          editable={!isRecording}
         />
       </View>
     </ScrollView>
   );
 };
 
-export default Home;
-
+// Add these new styles
 const styles = StyleSheet.create({
+  // ... existing styles ... ,
   listContainer: {
     height: hp(60),
     borderWidth: wp(1),
@@ -312,4 +286,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     fontSize: wp(4.5),
   },
+
+  stopButton: {
+    backgroundColor: 'red',
+    padding: 10,
+    borderRadius: 5,
+  },
+  stopButtonText: {
+    color: 'white',
+    fontSize: wp(4),
+    textAlign: 'center',
+  },
 });
+
+export default Home4;

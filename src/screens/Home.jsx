@@ -32,9 +32,7 @@ const data = [
 
 const Home = () => {
   const [selectedItem, setSelectedItem] = useState(null);
-  // const [generatedData, setGeneratedData] = useState('');
   const [updatedDataArray, setUpdatedDataArray] = useState(data);
-  // const [partialResult, setPartialResult] = useState('');
   const [result, setResult] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [isProcessedTranscript, setIsProcessedTranscript] = useState(false);
@@ -43,24 +41,16 @@ const Home = () => {
     Voice.onSpeechStart = () => setIsListening(true);
     Voice.onSpeechEnd = () => setIsListening(false);
     Voice.onSpeechResults = e => setResult(e.value[0]);
-    // Voice.onSpeechPartialResults = e => setPartialResult(e.value[0]);
 
     return () => {
       Voice.destroy().then(Voice.removeAllListeners);
     };
   }, []);
 
-  // useEffect(() => {
-  //   if (!isListening) {
-  //     setGeneratedData(result);
-  //   }
-  // }, [isListening]);
-
   const startListening = async () => {
     try {
       await Voice.start('en-US');
       setResult('');
-      // setPartialResult('');
     } catch (e) {
       console.error(e);
     }
@@ -86,7 +76,6 @@ const Home = () => {
     } else {
       setIsProcessedTranscript(false);
       setResult('');
-      // setPartialResult('');
       startListening();
     }
 
@@ -103,8 +92,8 @@ const Home = () => {
   return (
     <ScrollView style={{flexGrow: 1, padding: 20}}>
       <Animatable.Text animation="fadeIn" style={styles.listeningText1}>
-          LIST OF ITEMS
-        </Animatable.Text>
+        LIST OF ITEMS
+      </Animatable.Text>
       <View style={styles.listContainer}>
         <ScrollView showsVerticalScrollIndicator={false}>
           {updatedDataArray.map((item, index) => (
@@ -146,16 +135,14 @@ const Home = () => {
       </View>
 
       <View style={styles.listeningContainer}>
-
-          <TouchableOpacity
-        onPress={() => {
-          console.log(updatedDataArray);
-        }}>
-        <Animatable.Text animation="fadeIn" style={styles.listeningText}>
-          Recorded Text
-        </Animatable.Text>
-      </TouchableOpacity>
-        
+        <TouchableOpacity
+          onPress={() => {
+            console.log(updatedDataArray);
+          }}>
+          <Animatable.Text animation="fadeIn" style={styles.listeningText}>
+            Recorded Text
+          </Animatable.Text>
+        </TouchableOpacity>
 
         {/* <Animatable.View animation="slideInDown"> */}
         <TextInput
@@ -167,14 +154,6 @@ const Home = () => {
         />
         {/* </Animatable.View> */}
       </View>
-
-      {/* <TouchableOpacity
-        onPress={() => {
-          console.log(updatedDataArray);
-        }}>
-        <Text style={{fontSize: wp(5), fontWeight: 'bold'}}>Check</Text>
-      </TouchableOpacity> */}
-      {/* <Text style={{fontSize: wp(5), fontWeight: 'bold'}}>{partialResult}</Text> */}
     </ScrollView>
   );
 };
@@ -202,7 +181,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontWeight: 'bold',
     color: 'gray',
-    marginBottom:hp(1)
+    marginBottom: hp(1),
   },
   listeningText: {
     fontSize: wp(6),
