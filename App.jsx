@@ -4,6 +4,7 @@ import Home from './src/screens/Home';
 import Home2 from './src/screens/Home2';
 import Home3 from './src/screens/Home3';
 import Home4 from './src/screens/Home4';
+import Home5 from './src/screens/Home5';
 
 export default function App() {
   return (
@@ -11,7 +12,8 @@ export default function App() {
       {/* <Home /> */}
       {/* <Home2 /> */}
       {/* <Home3 /> */}
-      <Home4 />
+      {/* <Home4 /> */}
+      <Home5/>
     </View>
   );
 }
