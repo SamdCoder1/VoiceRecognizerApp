@@ -1,70 +1,63 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Button, Text, StyleSheet } from 'react-native';
 import Vosk from 'react-native-vosk';
-// import vosk from '../../android/app/src/main/assets/vosk-model-small-en-us-0.15'
 
-const modelPath = '../../android/app/src/main/assets/vosk-model-small-en-us-0.15';
+// Vosk in Ios loads model successfully but App Crash
 
-const Home5 = () => {
-  const [isListening, setIsListening] = useState(false);
-  const [transcript, setTranscript] = useState('');
+const Home6 = () => {
+  const [vosk, setVosk] = useState(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const [transcription, setTranscription] = useState('');
 
   useEffect(() => {
-    // Load the model when the component mounts
-    console.log(Vosk);
-        // Vosk.init
+    const loadModel = async () => {
+      const voskInstance = new Vosk();
+      const modelPath = '../../android/app/src/main/assets/vosk-model-small-en-us-0.15'; // Adjust the path to your model
 
-
-    Vosk.init(modelPath)
-      .then(() => console.log('Model loaded successfully'))
-      .catch((error) => console.error('Failed to load model:', error));
-    
-    return () => {
-      Vosk.destroy();
+      try {
+        await voskInstance.loadModel(modelPath);
+        console.log('Model loaded successfully');
+        setVosk(voskInstance);
+      } catch (error) {
+        console.error('Error loading model:', error);
+      }
     };
+
+    loadModel();
   }, []);
 
-  const startListening = async () => {
-    try {
-      await Vosk.start();
-      setIsListening(true);
-    } catch (error) {
-      console.error('Error starting Vosk:', error);
+  const handleStartRecording = async () => {
+    if (vosk) {
+      setIsRecording(true);
+      vosk.start()
+        .then(() => console.log('Recording started'))
+        .catch((error) => console.error('Error starting recording:', error));
     }
   };
 
-  const stopListening = async () => {
-    try {
-      await Vosk.stop();
-      setIsListening(false);
-    } catch (error) {
-      console.error('Error stopping Vosk:', error);
+  const handleStopRecording = async () => {
+    if (vosk) {
+      try {
+        const result = await vosk.stop();
+        setIsRecording(false);
+        console.log('Recording stopped');
+        console.log('Transcription:', result);
+        setTranscription(result); // Update transcription state
+      } catch (error) {
+        console.error('Error stopping recording:', error);
+      }
     }
   };
-
-  const handleResults = (event) => {
-    const { partial, text } = event;
-    setTranscript(text || partial);
-  };
-
-  useEffect(() => {
-    const subscription = Vosk.onResult(handleResults);
-    return () => {
-      subscription.remove();
-    };
-  }, []);
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Offline Voice Transcription with Vosk</Text>
-      <Text style={styles.transcript}>{transcript}</Text>
-
-      <TouchableOpacity
-        onPress={isListening ? stopListening : startListening}
-        style={styles.button}
-      >
-        <Text style={styles.buttonText}>{isListening ? 'Stop' : 'Start'} Listening</Text>
-      </TouchableOpacity>
+      <Text style={styles.title}>Vosk Voice Recognition</Text>
+      <Button
+        title={isRecording ? 'Stop Recording' : 'Start Recording'}
+        onPress={isRecording ? handleStopRecording : handleStartRecording}
+      />
+      <Text style={styles.transcriptionLabel}>Transcription:</Text>
+      <Text style={styles.transcription}>{transcription}</Text>
     </View>
   );
 };
@@ -74,30 +67,24 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    padding: 16,
+    backgroundColor: '#f5f5f5',
   },
-  header: {
-    fontSize: 18,
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
     marginBottom: 20,
   },
-  transcript: {
+  transcriptionLabel: {
+    marginTop: 20,
     fontSize: 16,
-    padding: 10,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    width: '100%',
-    minHeight: 100,
-    marginBottom: 20,
+    fontWeight: 'bold',
   },
-  button: {
-    backgroundColor: '#4CAF50',
-    padding: 10,
-    borderRadius: 5,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
+  transcription: {
+    marginTop: 10,
+    fontSize: 14,
+    color: '#333',
   },
 });
 
-export default Home5;
+export default Home6;

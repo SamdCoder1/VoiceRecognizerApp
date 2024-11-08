@@ -15,6 +15,8 @@ import {
   widthPercentageToDP as wp,
 } from 'react-native-responsive-screen';
 
+// App Running Successfully. In Ios listens longer period of time.
+
 const data = [
   {name: '1783 BPS', originalTranscript: '', processedTranscript: ''},
   {name: '1811 BOP', originalTranscript: '', processedTranscript: ''},
